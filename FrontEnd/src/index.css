@@ -36,3 +36,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== Scrollbar CSS ===== */
+  /* Firefox */
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: #8b5cf6 #030712;
+  }
+
+  /* Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #030712;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #8b5cf6;
+    border-radius: 10px;
+    border: 3px solid #030712;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #08091c;
+    margin-block-start: 3.5rem;
+  }
+
+  textarea::-webkit-scrollbar-thumb {
+    background-color: #8b5cf6;
+    border-radius: 10px;
+    border: 3px solid #08091c;
+  }
