@@ -1,8 +1,9 @@
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
+import { useCompletion } from 'ai/react'
+import { Wand2 } from 'lucide-react'
+import { useState } from 'react'
+import { PromptSelect } from './PromptSelect'
 import { Button } from './components/ui/button'
-import { Separator } from './components/ui/separator'
-import { Textarea } from './components/ui/textarea'
-import { Clapperboard, UploadCloud, Wand2 } from 'lucide-react'
 import { Label } from './components/ui/label'
 import {
   Select,
@@ -11,9 +12,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from './components/ui/select'
+import { Separator } from './components/ui/separator'
 import { Slider } from './components/ui/slider'
+import { Textarea } from './components/ui/textarea'
+import { VideoInputForm } from './components/videoInputForm'
 
 export function App() {
+  const [temperature, setTemperature] = useState(0.5)
+  const [videoId, setVideoId] = useState<string | null>(null)
+
+  const {
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    completion,
+    isLoading,
+  } = useCompletion({
+    api: 'http://localhost:3333/ai/complete',
+    body: {
+      videoId,
+      temperature,
+    },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
   return (
     <div className="flex flex-col h-screen">
       <div className="px-4 py-2 flex justify-between sticky top-0 bg-inherit border-b">
@@ -45,11 +70,14 @@ export function App() {
         <div className="flex-1 flex flex-col gap-3">
           <Textarea
             placeholder="inserir a prompt to IA"
+            value={input}
+            onChange={handleInputChange}
             className="w-full h-1/2 bg-primary/5 text-muted-foreground leading-relaxed placeholder:text-slate-500 rounded-sm p-4 resize-none"
           />
           <Textarea
             placeholder="Result of transcription"
             className="w-full h-1/2 bg-primary/5 leading-relaxed placeholder:text-slate-500 rounded-sm p-4 resize-none"
+            value={completion}
             readOnly
           />
           <p className="mt-2 text-muted-foreground">
@@ -59,49 +87,11 @@ export function App() {
           </p>
         </div>
         <aside className="w-80 space-y-6">
-          <form className="space-y-6 w-full">
-            <label className="w-full border-dotted border-2 flex aspect-video text-sm items-center gap-4 cursor-pointer hover:text-violet-500 hover:border-violet-500 justify-center rounded-md border-muted-foreground ">
-              <Clapperboard className="text-xl" /> upload video
-              <input
-                type="file"
-                name="video"
-                accept="video/mp4"
-                className="sr-only"
-              />
-            </label>
-
-            <Separator />
-
-            <div>
-              <Label className="text-gray-200 grid gap-4">
-                Transcription prompt
-                <Textarea
-                  placeholder="Include keywords mentioned on the video separated for comma ( , )"
-                  className="w-full min-h-[80px] bg-primary/5 leading-relaxed max-h-36 placeholder:text-slate-500 overflow-x-hidden rounded-sm p-4"
-                />
-              </Label>
-            </div>
-            <Button className="w-full flex gap-2">
-              Upload Video <UploadCloud className="w-4 h-4" />{' '}
-            </Button>
-          </form>
+          <VideoInputForm onVideoUploaded={setVideoId} />
           <Separator />
 
-          <form className="space-y-6">
-            <div className="space-y-2">
-              <Label>Prompt</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a prompt" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="title">Youtube Title</SelectItem>
-                  <SelectItem value="description">
-                    Youtube Description
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <PromptSelect onPromptSelected={setInput} />
             <div className="space-y-2">
               <Label>Model</Label>
               <Select defaultValue="gpt-3.5" disabled>
@@ -121,7 +111,13 @@ export function App() {
 
             <div className="space-y-4">
               <Label>Temperature</Label>
-              <Slider min={0} max={1} step={0.1} />
+              <Slider
+                min={0}
+                max={1}
+                step={0.1}
+                value={[temperature]}
+                onValueChange={(value) => setTemperature(value[0])}
+              />
               <span className="block text-xs text-muted-foreground italic">
                 Higher values will make the transcription less accurate
               </span>
@@ -129,7 +125,7 @@ export function App() {
 
             <Separator />
 
-            <Button className="flex w-full gap-2">
+            <Button className="flex w-full gap-2" disabled={isLoading}>
               Execult
               <Wand2 className="w-4 h-4" />
             </Button>
