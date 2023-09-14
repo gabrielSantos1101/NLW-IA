@@ -21,7 +21,7 @@ export async function uploadVideoRoutes(app: FastifyInstance) {
 
     if (!data) {
       return reply.status(400).send({
-        message: 'File not found',
+        error: 'Missing file input',
       })
     }
 
@@ -35,13 +35,7 @@ export async function uploadVideoRoutes(app: FastifyInstance) {
 
     const fileBaseName = path.basename(data.filename, extension)
     const fileName = `${fileBaseName}-${randomUUID()}${extension}`
-    const uploadDestination = path.resolve(
-      __dirname,
-      '..',
-      '..',
-      'tmp',
-      fileName,
-    )
+    const uploadDestination = path.resolve(__dirname, '../../tmp', fileName)
     await pump(data.file, fs.createWriteStream(uploadDestination))
 
     const video = await prisma.video.create({
@@ -51,6 +45,8 @@ export async function uploadVideoRoutes(app: FastifyInstance) {
       },
     })
 
-    reply.status(201).send()
+    return {
+      video,
+    }
   })
 }
